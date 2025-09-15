@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Add Player</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+body { font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif; background:#f0f2f5; display:flex; justify-content:center; align-items:center; min-height:100vh; padding:20px; }
+.card { background:linear-gradient(135deg,#fff,#e0f7fa); padding:30px; border-radius:20px; width:100%; max-width:400px; text-align:center; box-shadow:0 10px 25px rgba(0,0,0,0.12);}
+h1{color:#00796b;margin-bottom:12px;}
+input{width:100%;padding:12px;margin:10px 0;border-radius:8px;border:1px solid #ccc;font-size:16px;}
+button{width:100%;padding:12px;margin:10px 0;border:none;border-radius:10px;background:linear-gradient(135deg,#42a5f5,#1e88e5);color:#fff;font-size:16px;cursor:pointer;}
+button:hover{background:linear-gradient(135deg,#1e88e5,#1565c0);}
+#status{margin-top:8px;font-weight:600;}
+</style>
+</head>
+<body>
+<div class="card">
+    <h1>Add Player</h1>
+    <input type="text" id="playerName" placeholder="Player Name">
+    <button id="addBtn">Add Player</button>
+    <div id="status"></div>
+</div>
+<script>
+const addBtn = document.getElementById('addBtn');
+const playerNameInput = document.getElementById('playerName');
+const status = document.getElementById('status');
+
+addBtn.onclick = async ()=>{
+  const name = playerNameInput.value.trim();
+  if(!name){status.textContent='Enter name!'; status.style.color='red'; return;}
+  try{
+    const res = await fetch('/players?name='+encodeURIComponent(name), {method:'POST'});
+    if(res.ok){ status.textContent=`${name} added!`; status.style.color='green'; playerNameInput.value=''; playerNameInput.focus(); }
+    else {status.textContent='Failed to add.'; status.style.color='red';}
+  }catch(e){status.textContent='Server error.'; status.style.color='red';}
+};
+
+playerNameInput.addEventListener('keypress', (e)=>{if(e.key==='Enter') addBtn.click();});
+</script>
+</body>
+</html>
