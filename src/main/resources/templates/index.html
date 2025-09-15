@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>RiverValley Darts</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+body { font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif; margin:0; padding:20px; background:#f0f2f5; }
+h1 { text-align:center; margin-bottom:20px; color:#1a1a1a; }
+.boards { display:flex; flex-wrap:wrap; gap:20px; justify-content:center; margin-bottom:20px; }
+.board { flex:1; min-width:300px; max-width:480px; background:#fff; border-radius:12px; padding:12px; box-shadow:0 6px 15px rgba(0,0,0,0.12); }
+.board h2 { text-align:center; color:#1565c0; margin:8px 0; }
+.game-card { display:flex; justify-content:center; align-items:center; gap:12px; padding:12px; border-radius:10px; background:linear-gradient(135deg,#fff,#e0f7fa); box-shadow:0 4px 12px rgba(0,0,0,0.1); cursor:pointer; }
+.player-card { flex:1; padding:8px; text-align:center; border-radius:8px; background:#fff; box-shadow:0 4px 10px rgba(0,0,0,0.06); cursor:pointer; }
+.player-card:hover { background:#f1f8e9; }
+.player-name { font-size:18px; font-weight:700; color:#00796b; }
+.vs { font-size:18px; font-weight:700; color:#d81b60; }
+.queue-container { max-width:780px; margin:0 auto; background:#fff; border-radius:12px; padding:12px; box-shadow:0 6px 15px rgba(0,0,0,0.12); }
+.queue-container h2 { text-align:center; color:#1565c0; margin-bottom:6px; }
+ul { list-style:none; padding:0; margin:0; }
+li { background:linear-gradient(135deg,#fff,#f1f8e9); margin:6px 0; padding:8px; border-radius:8px; text-align:center; font-size:16px; font-weight:600; cursor:pointer; }
+li:hover { background:#e8f5e9; }
+#addPlayerBtn { display:block; margin:0 auto 20px; padding:10px 18px; font-size:16px; border:none; border-radius:10px; cursor:pointer; color:#fff; background:linear-gradient(135deg,#42a5f5,#1e88e5); }
+#addPlayerBtn:hover { background:linear-gradient(135deg,#1e88e5,#1565c0); }
+.switch { position: relative; display: inline-block; width:60px; height:34px; margin-bottom:20px; }
+.switch input { opacity:0; width:0; height:0; }
+.slider { position:absolute; cursor:pointer; top:0; left:0; right:0; bottom:0; background:#ccc; transition:.4s; border-radius:34px; }
+.slider:before { position:absolute; content:""; height:26px; width:26px; left:4px; bottom:4px; background:white; transition:.4s; border-radius:50%; }
+input:checked + .slider { background:#42a5f5; }
+input:checked + .slider:before { transform:translateX(26px); }
+.modal { display:none; position:fixed; z-index:1000; left:0; top:0; width:100%; height:100%; background:rgba(0,0,0,0.45); justify-content:center; align-items:center; }
+.modal-content { background:#fff; padding:16px; border-radius:10px; width:300px; text-align:center; box-shadow:0 10px 25px rgba(0,0,0,0.15); }
+.modal-content h3 { margin:6px 0 12px 0; }
+.modal-content input { width:90%; padding:8px; font-size:16px; margin-bottom:12px; border-radius:6px; border:1px solid #ccc; }
+.modal-content button { margin:6px; padding:8px 12px; border:none; border-radius:6px; font-weight:700; cursor:pointer; }
+.win { background:#66bb6a; color:#fff; }
+.lose { background:#ef5350; color:#fff; }
+.confirm { background:#42a5f5; color:#fff; }
+.cancel { background:#ccc; color:#222; }
+@media(max-width:800px){.boards{flex-direction:column;}}
+</style>
+</head>
+<body>
+<h1>RiverValley Community Centre — Darts</h1>
+
+<div class="boards">
+    <div class="board">
+        <h2>Board 1</h2>
+        <div class="game-card">
+            <div class="player-card" id="board1p1"><div class="player-name">None</div></div>
+            <div class="vs">VS</div>
+            <div class="player-card" id="board1p2"><div class="player-name">None</div></div>
+        </div>
+    </div>
+    <div class="board">
+        <h2>Board 2</h2>
+        <div class="game-card">
+            <div class="player-card" id="board2p1"><div class="player-name">None</div></div>
+            <div class="vs">VS</div>
+            <div class="player-card" id="board2p2"><div class="player-name">None</div></div>
+        </div>
+    </div>
+</div>
+
+<button id="addPlayerBtn">+ Add Player</button>
+
+
+<div class="queue-container">
+    <h2>Player Queue</h2>
+    <div>Next Up: <strong id="nextUp">None</strong></div>
+    <ul id="queue"></ul>
+</div>
+
+<!-- Add Player Modal -->
+<div class="modal" id="addPlayerModal">
+    <div class="modal-content">
+        <h3>Add Player</h3>
+        <input type="text" id="modalPlayerName" placeholder="Enter player name">
+        <button class="confirm" id="savePlayerBtn">Add</button>
+        <button class="cancel" id="cancelAddBtn">Cancel</button>
+    </div>
+</div>
+
+<!-- Win/Lose Modal -->
+<div class="modal" id="resultModal">
+    <div class="modal-content">
+        <h3 id="modalPlayer">Player</h3>
+        <button class="win" id="winBtn">Win</button>
+        <button class="lose" id="loseBtn">Lose</button>
+        <button class="cancel" id="cancelBtn">Cancel</button>
+    </div>
+</div>
+
+<!-- Queue Options Modal -->
+<div class="modal" id="queueOptionsModal">
+    <div class="modal-content">
+        <h3 id="queuePlayerName">Player</h3>
+        <button id="moveDownBtn" class="confirm">Move Down</button>
+        <button id="moveEndBtn" class="confirm">Move to End</button>
+        <button id="removeBtn" class="lose">Remove</button>
+        <button id="closeQueueOptions" class="cancel">Cancel</button>
+    </div>
+</div>
+
+<script>
+let boards = [[null,null],[null,null]];
+let queue = [];
+let currentPlayer=null,currentBoard=null,currentPos=null;
+let selectedQueuePlayer=null;
+
+async function loadPlayers(){
+    const res = await fetch('/players');
+    const players = await res.json();
+
+    // Prevent duplicates on boards
+    const boardIds = boards.flat().filter(p=>p).map(p=>p.id);
+    queue = players.filter(p=>!boardIds.includes(p.id));
+
+    // Fill empty board spots
+    for(let b=0;b<boards.length;b++){
+        for(let p=0;p<2;p++){
+            if(!boards[b][p] && queue.length>0){
+                boards[b][p] = queue.shift();
+            }
+        }
+    }
+
+    // Render boards
+    for(let b=0;b<boards.length;b++){
+        for(let p=0;p<2;p++){
+            const card=document.getElementById(`board${b+1}p${p+1}`);
+            const player=boards[b][p];
+            card.querySelector('.player-name').textContent = player?player.name:'None';
+        }
+    }
+
+    // Render queue
+    const queueEl=document.getElementById('queue');
+    queueEl.innerHTML='';
+    queue.forEach(p=>{
+        const li=document.createElement('li');
+        li.textContent=p.name;
+        li.onclick=()=>{ selectedQueuePlayer=p; document.getElementById('queuePlayerName').textContent=p.name; document.getElementById('queueOptionsModal').style.display='flex'; };
+        queueEl.appendChild(li);
+    });
+
+    document.getElementById('nextUp').textContent = queue[0]?queue[0].name:'None';
+}
+
+// Open Win/Lose modal
+function openResultModal(p,b,pi){
+    currentPlayer=p; currentBoard=b; currentPos=pi;
+    document.getElementById('modalPlayer').textContent=p.name;
+    document.getElementById('resultModal').style.display='flex';
+}
+
+// Board click
+for(let b=0;b<2;b++){
+    for(let p=0;p<2;p++){
+        document.getElementById(`board${b+1}p${p+1}`).onclick=()=>{
+            const pl=boards[b][p];
+            if(pl) openResultModal(pl,b,p);
+        };
+    }
+}
+
+// Win/Lose buttons
+document.getElementById('winBtn').onclick=async()=>{
+    if(!currentPlayer) return;
+    const loserIndex=boards[currentBoard].findIndex(pl=>pl && pl.id!==currentPlayer.id);
+    if(loserIndex!==-1){
+        const loser = boards[currentBoard][loserIndex];
+        const threeWin=document.getElementById('threeWinToggle').checked;
+        // Send winner/loser info to backend
+        await fetch(`/players/${currentPlayer.id}/winVs/${loser.id}?enforceThreeWins=${threeWin}`,{method:'PUT'});
+        boards[currentBoard][loserIndex]=null;
+    }
+    document.getElementById('resultModal').style.display='none';
+    currentPlayer=null; currentBoard=null; currentPos=null;
+    loadPlayers();
+};
+
+document.getElementById('loseBtn').onclick=async()=>{
+    if(!currentPlayer) return;
+    const loser=currentPlayer;
+    // Treat losing player
+    await fetch(`/players/${loser.id}/moveToEnd`,{method:'PUT'});
+    boards[currentBoard][currentPos]=null;
+    document.getElementById('resultModal').style.display='none';
+    currentPlayer=null; currentBoard=null; currentPos=null;
+    loadPlayers();
+};
+
+// Queue options
+document.getElementById('moveDownBtn').onclick=async()=>{
+    if(!selectedQueuePlayer) return;
+    await fetch(`/players/${selectedQueuePlayer.id}/moveDown`,{method:'PUT'});
+    document.getElementById('queueOptionsModal').style.display='none';
+    loadPlayers();
+};
+document.getElementById('moveEndBtn').onclick=async()=>{
+    if(!selectedQueuePlayer) return;
+    await fetch(`/players/${selectedQueuePlayer.id}/moveToEnd`,{method:'PUT'});
+    document.getElementById('queueOptionsModal').style.display='none';
+    loadPlayers();
+};
+document.getElementById('removeBtn').onclick=async()=>{
+    if(!selectedQueuePlayer) return;
+    await fetch(`/players/${selectedQueuePlayer.id}`,{method:'DELETE'});
+    document.getElementById('queueOptionsModal').style.display='none';
+    loadPlayers();
+};
+document.getElementById('closeQueueOptions').onclick=()=>{document.getElementById('queueOptionsModal').style.display='none';};
+
+// Add Player Modal
+document.getElementById('addPlayerBtn').onclick=()=>{document.getElementById('addPlayerModal').style.display='flex'; document.getElementById('modalPlayerName').value=''; document.getElementById('modalPlayerName').focus();}
+document.getElementById('cancelAddBtn').onclick=()=>{document.getElementById('addPlayerModal').style.display='none';}
+document.getElementById('savePlayerBtn').onclick=async()=>{
+    const name=document.getElementById('modalPlayerName').value.trim();
+    if(!name) return;
+    await fetch(`/players?name=${encodeURIComponent(name)}`,{method:'POST'});
+    document.getElementById('addPlayerModal').style.display='none';
+    loadPlayers();
+}
+document.getElementById('modalPlayerName').addEventListener('keypress',e=>{if(e.key==='Enter') document.getElementById('savePlayerBtn').click();});
+
+window.onclick=(e)=>{
+    if(e.target===document.getElementById('addPlayerModal')) document.getElementById('addPlayerModal').style.display='none';
+    if(e.target===document.getElementById('resultModal')) document.getElementById('resultModal').style.display='none';
+    if(e.target===document.getElementById('queueOptionsModal')) document.getElementById('queueOptionsModal').style.display='none';
+};
+
+loadPlayers();
+
+async function refreshPlayers(){
+    await loadPlayers();
+}
+
+// reload every 3 seconds
+setInterval(refreshPlayers, 3000);
+</script>
+</body>
+</html>
