@@ -30,4 +30,6 @@ public class PlayerController {
     public void winVs(@PathVariable int winnerId, @PathVariable int loserId, @RequestParam(defaultValue = "false") boolean enforceThreeWins){
         service.playerWon(winnerId, loserId, enforceThreeWins);
     }
+
+
 }
